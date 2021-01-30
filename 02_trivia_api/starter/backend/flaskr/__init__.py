@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS, cross_origin
 import random
@@ -111,7 +111,7 @@ def create_app(test_config=None):
           'success' : True
         })
       except:
-        abort(404)
+        abort(422)
 
     '''
     @TODO:
@@ -135,10 +135,9 @@ def create_app(test_config=None):
     Try using the word "title" to start.
     '''
     @app.route('/questions', methods=['POST'])
-    def search_question():
+    def add_or_search_question():
       try:
         request_body = request.get_json()
-        print(request_body)
         if 'searchTerm' in request_body:
           search_term = request_body['searchTerm']
           questions = Question.query.filter(Question.question.ilike('%'+search_term+'%')).all()
@@ -159,17 +158,6 @@ def create_app(test_config=None):
           return jsonify({
             'success' : True
           })
-        else:
-          new_question = body.get('question', None)
-          new_answer = body.get('answer', None)
-          new_difficulty = body.get('difficulty', None)
-          new_category = body.get('category', None)
-          question = Question(question=new_question, answer=new_answer, difficulty=new_difficulty, category=new_category)
-          question.insert()
-          body = {
-            'success' : True,
-          }
-          return jsonify(body)
       except:
         abort(404)
 
@@ -192,7 +180,7 @@ def create_app(test_config=None):
             'questions' : formatted_questions
           })
       except:
-        abort(404)
+        abort(422)
 
     '''
     @TODO:
@@ -217,7 +205,6 @@ def create_app(test_config=None):
         prev_questions = body['previous_questions']
         if(quiz_category == 0):
           quiz_questions = Question.query.all()
-          print(quiz_questions)
         else:
           quiz_questions = Question.query.filter_by(category=quiz_category).all()
         question_id = [question.id for question in quiz_questions]
@@ -236,6 +223,29 @@ def create_app(test_config=None):
     Create error handlers for all expected errors
     including 404 and 422.
     '''
+    @app.errorhandler(404)
+    def not_found_error(error):
+      return jsonify({
+        'success':False,
+        'error': 422,
+        'message': 'Not Found'
+      }), 404
+
+    @app.errorhandler(422)
+    def unprocessable_error(error):
+      return jsonify({
+        'success':False,
+        'error': 422,
+        'message': 'Unprocessable Entity'
+      }), 422
+
+    @app.errorhandler(500)
+    def server_error(error):
+      return jsonify({
+        'success':False,
+        'error': 500,
+        'message': 'Server Error'
+      }), 500
 
     return app
 
