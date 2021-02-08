@@ -2,9 +2,14 @@ import os
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv
 
 from flaskr import create_app
 from models import setup_db, Question, Category
+
+load_dotenv()
+
+DATABASE_HOSTNAME = os.getenv("DATABASE_HOSTNAME")
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -15,7 +20,7 @@ class TriviaTestCase(unittest.TestCase):
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "trivia_test"
-        self.database_path = "postgresql://{}/{}".format('localhost:5432', self.database_name)
+        self.database_path = "postgresql://{}/{}".format(DATABASE_HOSTNAME, self.database_name)
         setup_db(self.app, self.database_path)
 
         self.new_question = {
@@ -62,7 +67,7 @@ class TriviaTestCase(unittest.TestCase):
         self.assertTrue(data['categories'])
 
     def test_search_question(self):
-        resp = self.client().post('/questions', json={'searchTerm':'world'})
+        resp = self.client().post('/questions/search', json={'searchTerm':'world'})
         data = json.loads(resp.data)
 
         self.assertEqual(data['success'], True)
@@ -81,6 +86,46 @@ class TriviaTestCase(unittest.TestCase):
         data = json.loads(resp.data)
 
         self.assertEqual(data['success'], True)
+
+    def test_error_delete_question(self):
+        resp = self.client().delete('/questions/100')
+        data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Bad Request')
+
+    def test_error_add_question(self):
+        resp = self.client().post('/questions')
+        data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Bad Request')
+
+    def test_error_search_question(self):
+        resp = self.client().post('/questions/search')
+        data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Bad Request')
+
+    def test_error_get_category(self):
+        resp = self.client().get('/categories/9/questions')
+        data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Not Found')
+
+    def test_error_next_question(self):
+        resp = self.client().post('/quizzes')
+        data = json.loads(resp.data)
+
+        self.assertEqual(resp.status_code, 400)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'Bad Request')
 
     """
     TODO
