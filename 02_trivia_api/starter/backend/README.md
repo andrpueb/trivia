@@ -96,6 +96,8 @@ API Reference
 Welcome to the Trivia API, this is a REST based API with well defined and resource focused URLs.
 
 
+
+
 Endpoints:
 
 1. GET  /categories
@@ -142,7 +144,7 @@ Response:
 }
 
 
-3. GET /categories/{int}/questions
+3. GET /categories/{int:category_id}/questions
 This is an object that represents all the questions available that are part of the selected categry, the category is selected by using the key from the categories object.
 
 Example: /categories/2/questions
@@ -189,6 +191,8 @@ you need to use this endpoint whenever you want to add a new question to the dat
 - difficulty (int) : 1 being the easiest and 5 the most difficult
 - category (int) : the key based on the categories object
 
+Example:
+
 {
 	"question" : "Who am I?",
 	"answer" : "God",
@@ -201,7 +205,56 @@ Response:
 	"success" : True
 }
 
-5.
+5. POST /questions/search
+The question search endpoint will easily help the user to find all the questions that contain the specified search term, the object should contain:
+
+- search term (string) : The term that you think is likely to be present in one or more questions
+
+Example:
+
+{
+	"searchTerm" : "world"
+}
+
+Response:
+
+{
+    "questions": [
+        {
+            "answer": "Brazil",
+            "category": 6,
+            "difficulty": 3,
+            "id": 10,
+            "question": "Which is the only team to play in every soccer World Cup tournament?"
+        },
+        {
+            "answer": "Uruguay",
+            "category": 6,
+            "difficulty": 4,
+            "id": 11,
+            "question": "Which country won the first ever soccer World Cup in 1930?"
+        }
+    ],
+    "success": true,
+    "total_questions": 2
+}
+
+6. POST /quizzes
+This is the endpoint for when you start a game, make sure you send in the payload to the endpoint an object called quiz_category that should contain the key 'type' which value should be the category name, and the 'id' which value is the category id, and an array called 'previous_questions' that should contain the list of the id's already answered.
+
+Example:
+
+{
+  previous_questions: [16, 2, 3],
+  quiz_category:
+  {
+    type: "Art",
+    id: "2"
+  }
+}
+
+7. DELETE /questions/{int:question_id}
+This is the endpoint that you need to use when you want to erase a question from the database
 
 
 
